@@ -17,23 +17,8 @@ public class Inspector {
     private Set<String> vaccinesNotRequiredForEntrants = new HashSet<>();// ЦІ щеплення НЕПОТРІБНІ ДЛЯ УСІХ
 
     private String wantedCriminal = null;
-//"passport" — обов’язковий для всіх.
-//
-//"ID_card" — тільки для громадян Arstotzka, якщо бюлетень вимагає.
-//
-//            "access_permit" — для іноземців, якщо потрібен доступ.
-//
-//            "grant_of_asylum" — замість access_permit для іноземців.
-//
-//            "certificate_of_vaccination" — якщо потрібна вакцина.
-//
-//"work_pass" — для робітників-іноземців.
-//
-//"diplomatic_authorization" — для іноземців-дипломатів (як альтернатива access_permit).
 
     public void receiveBulletin(String bulletin) {
-        System.out.println("???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????");
-        System.out.println(bulletin);
         wantedCriminal = null;
         String[] bulletinLines = bulletin.split("\n");
         for (String bulletinFild : bulletinLines) {
@@ -89,7 +74,7 @@ public class Inspector {
                     }
                 } else {
                     requiredForAllEntrantsVaccines.add(vaccine.trim());
-                }//Citizens of Antegria, Impor, Republia, Kolechia no longer require rubella vaccination
+                }
             } else if (bulletinFild.startsWith("Citizens of ") &&
                     (bulletinFild.endsWith("vaccination") || bulletinFild.endsWith("vaccinations"))) {//вакц стран
                 boolean remove = bulletinFild.contains("no longer require");
@@ -134,21 +119,18 @@ public class Inspector {
                 wantedCriminal = bulletinFild.substring("Wanted by the State: ".length());
             }
         }
-        System.out.println(allowedNations);//+ країни
-        System.out.println(bannedNations);//-країни
-        System.out.println(requiredForForeigners);  //для іноземців
-        System.out.println(requiredForCitizens);//для громадян
-        System.out.println(requiredForWorkers);//Для робітників
-        System.out.println(requiredForAllEntrantsVaccines);// обов'язкова вакцинація
-        System.out.println(requiredVaccinationsMap);// обов щеплення громадян різних стран
-        System.out.println(vaccinesNotRequiredForEntrants);//ЦІ щеплення НЕПОТРІБНІ ДЛЯ УСІХ
-        System.out.println("розиск - " + wantedCriminal);// запрет особі
+//        System.out.println(allowedNations);//+ країни
+//        System.out.println(bannedNations);//-країни
+//        System.out.println(requiredForForeigners);  //для іноземців
+//        System.out.println(requiredForCitizens);//для громадян
+//        System.out.println(requiredForWorkers);//Для робітників
+//        System.out.println(requiredForAllEntrantsVaccines);// обов'язкова вакцинація
+//        System.out.println(requiredVaccinationsMap);// обов щеплення громадян різних стран
+//        System.out.println(vaccinesNotRequiredForEntrants);//ЦІ щеплення НЕПОТРІБНІ ДЛЯ УСІХ
+//        System.out.println("розиск - " + wantedCriminal);// запрет особі
     }
 
     public String inspect(Map<String, String> person) {
-        System.out.println("---------------------------");
-        printPerson(person);
-        System.out.println("---------------------------");
         if (wantedCriminal != null) {   //перевірка на розшук
             String name = extractName(person);
             if (name != null) {
@@ -184,7 +166,6 @@ public class Inspector {
                 return "Entry denied: citizen of banned nation.";
             }
             if ("Arstotzka".equals(nation)) {  // перевір  громадянства Артроц ід без бюлетеня
-                System.out.println("*********111************");
                 if (!requiredForCitizens.isEmpty()) {
                     if (requiredForCitizens.contains("ID card")) {
                         if (!person.containsKey("ID_card")) {
@@ -214,7 +195,6 @@ public class Inspector {
                         return "Entry denied: certificate of vaccination expired.";
                     // Перевіряємо конкретну вакцину
                     Set<String> vaccines = getVaccines("certificate_of_vaccination", person);
-                    System.out.println(vaccines);
                     for (String required : requiredForAllEntrantsVaccines) {
                         boolean hasVaccine = vaccines.stream()
                                 .anyMatch(v -> v.equalsIgnoreCase(required));
@@ -247,9 +227,7 @@ public class Inspector {
                     }
                 }
                 return "Glory to Arstotzka.";// якщо попередній закоментований
-
             } else if (!"Arstotzka".equals(nation)) {
-                System.out.println("*********222************");
                 boolean conditionalReservation = false;
                 if (person.containsKey("diplomatic_authorization")) {// якщо дипломат є прівелеї
                     String expDiplomat = getExpDateString("diplomatic_authorization", person);// перевірка діпломата  по дате
@@ -298,8 +276,6 @@ public class Inspector {
                         return "Entry denied: access permit expired.";
                 }
                 if (!requiredForForeigners.isEmpty()) {
-                    System.out.println("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
-                    System.out.println(" БРОНЬ " + conditionalReservation);
                     if (requiredForForeigners.contains("access permit") && !conditionalReservation) { //запит з бюлетня
                         // на "access_permit"
                         if (!person.containsKey("access_permit")) {  // якщо access_permit ключа персона нема
@@ -307,10 +283,8 @@ public class Inspector {
                         }
                     }
                     for (String fild : requiredForForeigners) {
-                        System.out.println("W" + fild + "W");
                         if (fild.trim().endsWith(" vaccination")) {
                             String vaccina = fild.replace(" vaccination", "").trim();
-                            System.out.println("F" + vaccina + "F");
                             if (!person.containsKey("certificate_of_vaccination")) {
                                 return "Entry denied: missing required certificate of vaccination.";
                             }
@@ -324,7 +298,6 @@ public class Inspector {
                                 return "Entry denied: certificate of vaccination expired.";
                             // Перевіряємо конкретну вакцину
                             Set<String> vaccines = getVaccines("certificate_of_vaccination", person);
-                            System.out.println(vaccines);
                             boolean hasVaccine = vaccines.stream()
                                     .anyMatch(v -> v.equalsIgnoreCase(vaccina));
                             if (!hasVaccine) {
@@ -335,7 +308,6 @@ public class Inspector {
                 }
                 if (!requiredVaccinationsMap.isEmpty() && requiredVaccinationsMap.containsKey(nation)
                         && !requiredVaccinationsMap.get(nation).isEmpty()) {
-                    System.out.println("GGGGGGGGGGGGGGGG");
                     Set<String> vaccinasIsMap = requiredVaccinationsMap.get(nation);
                     if (!person.containsKey("certificate_of_vaccination")) {
                         return "Entry denied: missing required certificate of vaccination.";
@@ -358,7 +330,6 @@ public class Inspector {
                     }
                 }
                 if (!requiredForAllEntrantsVaccines.isEmpty()) {
-                    System.out.println("ttttttttttttttttttttttttttt");
                     if (!person.containsKey("certificate_of_vaccination")) {
                         return "Entry denied: missing required certificate of vaccination.";
                     }
@@ -381,7 +352,6 @@ public class Inspector {
                 }
                 return "Cause no trouble.";
             }
-            System.out.println();
         }
         return null;
     }
