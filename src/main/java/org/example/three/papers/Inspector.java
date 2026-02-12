@@ -157,15 +157,8 @@ public class Inspector {
                 }
             }
         }
-        List<String> idList = person.values().stream()
-                .flatMap(a -> Arrays.stream(a.split("\n")))
-                .filter(a -> a.startsWith("ID"))
-                .map(a -> a.substring("ID#: ".length()).trim())
-                .toList();
-        if (idList.size() > 1) {
-            if (hasIdMismatch(idList)) {
-                return "Detainment: ID number mismatch.";
-            }
+        if (hasIdMismatch(person)) {    //перевірка на валідність ід
+            return "Detainment: ID number mismatch.";
         }
         if (!person.containsKey("passport")) {  //паспорта -
             return "Entry denied: missing required passport.";
@@ -414,8 +407,13 @@ public class Inspector {
         }
     }
 
-    public boolean hasIdMismatch(List<String> listId) {
-        return listId.stream().distinct().count() > 1;
+    public boolean hasIdMismatch(Map<String, String> person) {
+        List<String> idList = person.values().stream()
+                .flatMap(a -> Arrays.stream(a.split("\n")))
+                .filter(a -> a.startsWith("ID"))
+                .map(a -> a.substring("ID#: ".length()).trim())
+                .toList();
+        return idList.stream().distinct().count() > 1;
     }
 
     public boolean namesMatch(String bulletinCriminalName, String namePerson) {
