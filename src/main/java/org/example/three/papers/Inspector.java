@@ -265,24 +265,9 @@ public class Inspector {
                             return "Entry denied: missing required access permit.";
                         }
                     }
-                    for (String fild : requiredForForeigners) {
-                        if (fild.trim().endsWith(" vaccination")) {
-                            String vaccina = fild.replace(" vaccination", "").trim();
-                            if (!hasCertificate(person)) {
-                                return "Entry denied: missing required certificate of vaccination.";
-                            }
-                            // Перевіряємо EXP сертифіката
-                            String expVacc = getExpDateString("certificate_of_vaccination", person);
-                            if (expVacc != null && isExpired(expVacc))
-                                return "Entry denied: certificate of vaccination expired.";
-                            // Перевіряємо конкретну вакцину
-                            Set<String> vaccines = getVaccines("certificate_of_vaccination", person);
-                            boolean hasVaccine = vaccines.stream()
-                                    .anyMatch(v -> v.equalsIgnoreCase(vaccina));
-                            if (!hasVaccine) {
-                                return "Entry denied: missing required vaccination.";
-                            }
-                        }
+                    for (String field : requiredForForeigners) { // перевірка вакцінації
+                        String result = checkVaccinationForField(person, field);
+                        if (result != null) return result;
                     }
                 }
                 if (!requiredVaccinationsMap.isEmpty() && requiredVaccinationsMap.containsKey(nation)
@@ -317,6 +302,27 @@ public class Inspector {
             }
         }
         return null;
+    }
+    private String checkVaccinationForField(Map<String, String> person, String field) {
+        if (field.trim().endsWith(" vaccination")) {
+            String vaccina = field.replace(" vaccination", "").trim();
+            if (!hasCertificate(person)) {
+                return "Entry denied: missing required certificate of vaccination.";
+            }
+            // Перевіряємо EXP сертифіката
+            String expVacc = getExpDateString("certificate_of_vaccination", person);
+            if (expVacc != null && isExpired(expVacc)) {
+                return "Entry denied: certificate of vaccination expired.";
+            }
+            // Перевіряємо конкретну вакцину
+            Set<String> vaccines = getVaccines("certificate_of_vaccination", person);
+            boolean hasVaccine = vaccines.stream()
+                    .anyMatch(v -> v.equalsIgnoreCase(vaccina));
+            if (!hasVaccine) {
+                return "Entry denied: missing required vaccination.";
+            }
+        }
+        return null; // все добре
     }
     public boolean hasAllVaccines(Set<String> required, Set<String> personVaccines) {
         for (String req : required) {
