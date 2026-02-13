@@ -170,12 +170,7 @@ public class Inspector {
                         if (!person.containsKey("ID_card")) {
                             return "Entry denied: missing required ID card.";
                         } else {
-                            String lineId = person.get("ID_card");  //key "ID_card"
-                            String expId = Arrays.asList(lineId).stream()
-                                    .filter(a -> a.startsWith("EXP: "))
-                                    .map(a -> a.substring("EXP: ".length()).trim())
-                                    .findFirst()
-                                    .orElse(null);// перевірка id по дате
+                            String expId = getExpDateString("ID_card", person);// перевірка  по дате
                             if (expId != null && isExpired(expId)) return "Entry denied: ID_card expired.";
                         }
                     }
@@ -190,7 +185,7 @@ public class Inspector {
                         return "Entry denied: certificate of vaccination expired.";
                     // Перевіряємо конкретну вакцину
                     Set<String> vaccines = getVaccines("certificate_of_vaccination", person);
-                    if (!hasAllVaccines(requiredForAllEntrantsVaccines,vaccines)){//є наявні вакціни у персона
+                    if (!hasAllVaccines(requiredForAllEntrantsVaccines, vaccines)) {//є наявні вакціни у персона
                         return "Entry denied: missing required vaccination.";
                     }
                 }
@@ -205,7 +200,7 @@ public class Inspector {
                     if (expVacc != null && isExpired(expVacc))
                         return "Entry denied: certificate of vaccination expired.";
                     Set<String> vaccinesIsPerson = getVaccines("certificate_of_vaccination", person);
-                    if (!hasAllVaccines(vaccinasIsMap,vaccinesIsPerson)){//є наявні вакціни у персона
+                    if (!hasAllVaccines(vaccinasIsMap, vaccinesIsPerson)) {//є наявні вакціни у персона
                         return "Entry denied: missing required vaccination.";
                     }
                 }
@@ -281,7 +276,7 @@ public class Inspector {
                     if (expVacc != null && isExpired(expVacc))
                         return "Entry denied: certificate of vaccination expired.";
                     Set<String> vaccinesIsPerson = getVaccines("certificate_of_vaccination", person);
-                    if (!hasAllVaccines(vaccinasIsMap,vaccinesIsPerson)){//є наявні вакціни у персона
+                    if (!hasAllVaccines(vaccinasIsMap, vaccinesIsPerson)) {//є наявні вакціни у персона
                         return "Entry denied: missing required vaccination.";
                     }
                 }
@@ -294,7 +289,7 @@ public class Inspector {
                         return "Entry denied: certificate of vaccination expired.";
                     }
                     Set<String> entrantVaccines = getVaccines("certificate_of_vaccination", person);
-                    if (!hasAllVaccines(requiredForAllEntrantsVaccines,entrantVaccines)){//є наявні вакціни у персона
+                    if (!hasAllVaccines(requiredForAllEntrantsVaccines, entrantVaccines)) {//є наявні вакціни у персона
                         return "Entry denied: missing required vaccination.";
                     }
                 }
@@ -303,6 +298,7 @@ public class Inspector {
         }
         return null;
     }
+
     private String checkVaccinationForField(Map<String, String> person, String field) {
         if (field.trim().endsWith(" vaccination")) {
             String vaccina = field.replace(" vaccination", "").trim();
@@ -324,6 +320,7 @@ public class Inspector {
         }
         return null; // все добре
     }
+
     public boolean hasAllVaccines(Set<String> required, Set<String> personVaccines) {
         for (String req : required) {
             boolean has = personVaccines.stream()
@@ -334,6 +331,7 @@ public class Inspector {
         }
         return true;
     }
+
     public boolean hasCertificate(Map<String, String> person) {
         String cert = person.get("certificate_of_vaccination");
         return cert != null && !cert.isBlank();
