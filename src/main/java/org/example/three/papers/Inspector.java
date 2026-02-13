@@ -182,11 +182,7 @@ public class Inspector {
                     }
                 }
                 if (!requiredForAllEntrantsVaccines.isEmpty()) {
-                    if (!person.containsKey("certificate_of_vaccination")) {
-                        return "Entry denied: missing required certificate of vaccination.";
-                    }
-                    String cert = person.get("certificate_of_vaccination");
-                    if (cert == null) {
+                    if (!hasCertificate(person)) {
                         return "Entry denied: missing required certificate of vaccination.";
                     }
                     // Перевіряємо EXP сертифіката
@@ -206,11 +202,7 @@ public class Inspector {
                 if (!requiredVaccinationsMap.isEmpty() && requiredVaccinationsMap.containsKey(nation)
                         && !requiredVaccinationsMap.get(nation).isEmpty()) {
                     Set<String> vaccinasIsMap = requiredVaccinationsMap.get(nation);
-                    if (!person.containsKey("certificate_of_vaccination")) {
-                        return "Entry denied: missing required certificate of vaccination.";
-                    }
-                    String cert = person.get("certificate_of_vaccination");
-                    if (cert == null) {
+                    if (!hasCertificate(person)) {
                         return "Entry denied: missing required certificate of vaccination.";
                     }
                     // Перевіряємо EXP сертифіката
@@ -285,11 +277,7 @@ public class Inspector {
                     for (String fild : requiredForForeigners) {
                         if (fild.trim().endsWith(" vaccination")) {
                             String vaccina = fild.replace(" vaccination", "").trim();
-                            if (!person.containsKey("certificate_of_vaccination")) {
-                                return "Entry denied: missing required certificate of vaccination.";
-                            }
-                            String cert = person.get("certificate_of_vaccination");
-                            if (cert == null) {
+                            if (!hasCertificate(person)) {
                                 return "Entry denied: missing required certificate of vaccination.";
                             }
                             // Перевіряємо EXP сертифіката
@@ -309,11 +297,7 @@ public class Inspector {
                 if (!requiredVaccinationsMap.isEmpty() && requiredVaccinationsMap.containsKey(nation)
                         && !requiredVaccinationsMap.get(nation).isEmpty()) {
                     Set<String> vaccinasIsMap = requiredVaccinationsMap.get(nation);
-                    if (!person.containsKey("certificate_of_vaccination")) {
-                        return "Entry denied: missing required certificate of vaccination.";
-                    }
-                    String cert = person.get("certificate_of_vaccination");
-                    if (cert == null) {
+                    if (!hasCertificate(person)) {
                         return "Entry denied: missing required certificate of vaccination.";
                     }
                     // Перевіряємо EXP сертифіката
@@ -330,11 +314,7 @@ public class Inspector {
                     }
                 }
                 if (!requiredForAllEntrantsVaccines.isEmpty()) {
-                    if (!person.containsKey("certificate_of_vaccination")) {
-                        return "Entry denied: missing required certificate of vaccination.";
-                    }
-                    String cert = person.get("certificate_of_vaccination");
-                    if (cert == null) {
+                    if (!hasCertificate(person)) {
                         return "Entry denied: missing required certificate of vaccination.";
                     }
                     String expVacc = getExpDateString("certificate_of_vaccination", person);
@@ -354,6 +334,11 @@ public class Inspector {
             }
         }
         return null;
+    }
+
+    public boolean hasCertificate(Map<String, String> person) {
+        String cert = person.get("certificate_of_vaccination");
+        return cert != null && !cert.isBlank();
     }
 
     public String extractName(Map<String, String> person) {
