@@ -151,7 +151,6 @@ public class Inspector {
             String passportValue = person.get("passport");
             String nation = null;
             List<String> filds = Arrays.asList(passportValue.split("\n"));//філди паспорта
-
             for (String fild : filds) {
                 if (fild.contains("NATION: ")) {
                     nation = fild.substring("NATION: ".length()).trim();
@@ -182,7 +181,7 @@ public class Inspector {
                     }
                 }
                 if (!requiredForAllEntrantsVaccines.isEmpty()) {
-                    if (!hasCertificate(person)) {
+                    if (!hasCertificate(person)) {          //перевірка сертифіката на наявність
                         return "Entry denied: missing required certificate of vaccination.";
                     }
                     // Перевіряємо EXP сертифіката
@@ -191,12 +190,8 @@ public class Inspector {
                         return "Entry denied: certificate of vaccination expired.";
                     // Перевіряємо конкретну вакцину
                     Set<String> vaccines = getVaccines("certificate_of_vaccination", person);
-                    for (String required : requiredForAllEntrantsVaccines) {
-                        boolean hasVaccine = vaccines.stream()
-                                .anyMatch(v -> v.equalsIgnoreCase(required));
-                        if (!hasVaccine) {
-                            return "Entry denied: missing required vaccination.";
-                        }
+                    if (!hasAllVaccines(requiredForAllEntrantsVaccines,vaccines)){//є наявні вакціни у персона
+                        return "Entry denied: missing required vaccination.";
                     }
                 }
                 if (!requiredVaccinationsMap.isEmpty() && requiredVaccinationsMap.containsKey(nation)
@@ -210,15 +205,11 @@ public class Inspector {
                     if (expVacc != null && isExpired(expVacc))
                         return "Entry denied: certificate of vaccination expired.";
                     Set<String> vaccinesIsPerson = getVaccines("certificate_of_vaccination", person);
-                    for (String vaccina : vaccinasIsMap) {
-                        boolean hasVaccine = vaccinesIsPerson.stream()
-                                .anyMatch(v -> v.equalsIgnoreCase(vaccina));
-                        if (!hasVaccine) {
-                            return "Entry denied: missing required vaccination.";
-                        }
+                    if (!hasAllVaccines(vaccinasIsMap,vaccinesIsPerson)){//є наявні вакціни у персона
+                        return "Entry denied: missing required vaccination.";
                     }
                 }
-                return "Glory to Arstotzka.";// якщо попередній закоментований
+                return "Glory to Arstotzka.";
             } else if (!"Arstotzka".equals(nation)) {
                 boolean conditionalReservation = false;
                 if (person.containsKey("diplomatic_authorization")) {// якщо дипломат є прівелеї
@@ -305,12 +296,8 @@ public class Inspector {
                     if (expVacc != null && isExpired(expVacc))
                         return "Entry denied: certificate of vaccination expired.";
                     Set<String> vaccinesIsPerson = getVaccines("certificate_of_vaccination", person);
-                    for (String vaccina : vaccinasIsMap) {
-                        boolean hasVaccine = vaccinesIsPerson.stream()
-                                .anyMatch(v -> v.equalsIgnoreCase(vaccina));
-                        if (!hasVaccine) {
-                            return "Entry denied: missing required vaccination.";
-                        }
+                    if (!hasAllVaccines(vaccinasIsMap,vaccinesIsPerson)){//є наявні вакціни у персона
+                        return "Entry denied: missing required vaccination.";
                     }
                 }
                 if (!requiredForAllEntrantsVaccines.isEmpty()) {
@@ -322,12 +309,8 @@ public class Inspector {
                         return "Entry denied: certificate of vaccination expired.";
                     }
                     Set<String> entrantVaccines = getVaccines("certificate_of_vaccination", person);
-                    for (String required : requiredForAllEntrantsVaccines) {
-                        boolean hasVaccine = entrantVaccines.stream()
-                                .anyMatch(v -> v.equalsIgnoreCase(required));
-                        if (!hasVaccine) {
-                            return "Entry denied: missing required vaccination.";
-                        }
+                    if (!hasAllVaccines(requiredForAllEntrantsVaccines,entrantVaccines)){//є наявні вакціни у персона
+                        return "Entry denied: missing required vaccination.";
                     }
                 }
                 return "Cause no trouble.";
@@ -335,7 +318,16 @@ public class Inspector {
         }
         return null;
     }
-
+    public boolean hasAllVaccines(Set<String> required, Set<String> personVaccines) {
+        for (String req : required) {
+            boolean has = personVaccines.stream()
+                    .anyMatch(v -> v.equalsIgnoreCase(req));
+            if (!has) {
+                return false;
+            }
+        }
+        return true;
+    }
     public boolean hasCertificate(Map<String, String> person) {
         String cert = person.get("certificate_of_vaccination");
         return cert != null && !cert.isBlank();
